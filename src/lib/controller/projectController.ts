@@ -98,16 +98,19 @@ export const updateWhiteboardFile = async({ fileId ,whiteboard,document}:{fileId
     }
 }
 
-//delete
-export const deleteFile = async({fileId , userId}:{userId:string,fileId:string})=>{
+//delete  
+export const deleteFile = async ({fileId , userId}:{fileId:string,userId:string})=>{
   try {
-    const removefromUser = await user.findByIdAndUpdate(
-        {_id:userId},
-        {$pull:{project:fileId}},
-        )
-    const deleteProject = await file.findByIdAndDelete({_id: fileId},{new:true})
-    return deleteProject
+      console.log("i hitted the server");
+      if(!userId || !fileId){ 
+        throw new Error("info missing");
+      }
+      await DBconnection();
+      const updatedUser = await user.findByIdAndUpdate( userId,  { $pull: { project: { fileId: fileId }}},{ new: true }).populate("project"); 
+      await file.findByIdAndDelete(fileId);
+      return JSON.stringify(updatedUser);     
   } catch (error) {
+      
     console.log(error);
   }
 }

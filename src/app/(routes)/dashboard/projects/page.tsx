@@ -9,15 +9,26 @@ import { usePersonStore } from "@/store/store";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CustomAlertDialog from "@/_components/AlertDialog";
 import { ModeToggle } from "@/_components/ThemeTogle";
-
+import { deleteFile } from "@/lib/controller/projectController";
+import { toast } from "sonner";
 
 const Projects = () => {
-  const projects = usePersonStore((state:any)=> state.project);
+  const projects = usePersonStore((state:any)=> state.project);  
   const userinfo = usePersonStore((state:any)=>state.user);
- const deleteProject = (fileId:any)=>{
-  console.log(fileId);
-  //TODO
- }
+  const setUserSlice = usePersonStore((state:any) => state.updateUser);
+  const setProjectSlice = usePersonStore((state:any)=> state.updateProject);
+
+  const deleteProject = async (fileId:string , userId:string)=>{
+        const updateduser : any = await deleteFile({fileId , userId}); 
+        console.log("updateduser after project deletion" , updateduser);
+        const parsedUser = JSON.parse(updateduser);
+        console.log(parsedUser) ;
+        toast("Project Deleted"); 
+        setUserSlice(parsedUser); 
+        const projects = parsedUser?.project;
+        setProjectSlice(projects);
+
+  }
   return (
     <div>
       <section className="w-full h-20 flex justify-end  items-center">
@@ -73,9 +84,11 @@ const Projects = () => {
                     title={"Delete Project"}
                     dialogDescription={"Are you sure you want to delete this project? This action cannot be undone."}
                     buttonText={'Delete'}
-                    buttonOnClick={()=>deleteProject(data.fileId)}
+                    buttonOnClick={()=>deleteProject(data.fileId , userinfo?._id)}
                   >
-                    <DropdownMenuItem className='hover:bg-red-200'>
+                    <DropdownMenuItem 
+                      onSelect={(e) => e.preventDefault()}   
+                      className='hover:bg-red-200'>
                       <Trash className="size-4 mr-3" />
                       Delete
                     </DropdownMenuItem>
